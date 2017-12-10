@@ -10,8 +10,8 @@ description:
     Advanced School of Functional Programming, 1995.
 license:             BSD3
 license-file:        LICENSE
-author:              Andy Gill
-maintainer:          trevor@galois.com
+author:              Andy Gill, M Farkas-Dyck
+maintainer:          strake888@gmail.com
 -- copyright:           
 category:            Control
 build-type:          Simple
