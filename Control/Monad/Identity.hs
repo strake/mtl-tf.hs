@@ -39,57 +39,13 @@ version of that monad.
 -}
 
 module Control.Monad.Identity (
-    Identity(..),
-
     module Control.Monad,
     module Control.Monad.Fix,
+    module Control.Monad.Trans.Identity,
+    module Data.Functor.Identity,
    ) where
 
 import Control.Monad
 import Control.Monad.Fix
-
-{- | Identity wrapper.
-Abstraction for wrapping up a object.
-If you have an monadic function, say:
-
->   example :: Int -> Identity Int
->   example x = return (x*x)
-
-     you can \"run\" it, using
-
-> Main> runIdentity (example 42)
-> 1764 :: Int
-
-A typical use of the Identity monad is to derive a monad
-from a monad transformer.
-
-@
--- derive the 'Control.Monad.State.State' monad using the 'Control.Monad.State.StateT' monad transformer
-type 'Control.Monad.State.State' s a = 'Control.Monad.State.StateT' s 'Identity' a
-@
-
-The @'runIdentity'@ label is used in the type definition because it follows
-a style of monad definition that explicitly represents monad values as
-computations. In this style, a monadic computation is built up using the monadic
-operators and then the value of the computation is extracted
-using the @run******@ function.
-Because the @Identity@ monad does not do any computation, its definition
-is trivial.
-For a better example of this style of monad,
-see the @'Control.Monad.State.State'@ monad.
--}
-
-newtype Identity a = Identity { runIdentity :: a }
-
--- ---------------------------------------------------------------------------
--- Identity instances for Functor and Monad
-
-instance Functor Identity where
-    fmap f m = Identity (f (runIdentity m))
-
-instance Monad Identity where
-    return a = Identity a
-    m >>= k  = k (runIdentity m)
-
-instance MonadFix Identity where
-    mfix f = Identity (fix (runIdentity . f))
+import Control.Monad.Trans.Identity
+import Data.Functor.Identity

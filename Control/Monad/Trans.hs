@@ -23,20 +23,5 @@ module Control.Monad.Trans (
     MonadIO(..),
   ) where
 
-import System.IO
-
--- ---------------------------------------------------------------------------
--- MonadTrans class
---
--- Monad to facilitate stackable Monads.
--- Provides a way of digging into an outer
--- monad, giving access to (lifting) the inner monad.
-
-class MonadTrans t where
-    lift :: Monad m => m a -> t m a
-
-class (Monad m) => MonadIO m where
-    liftIO :: IO a -> m a
-
-instance MonadIO IO where
-    liftIO = id
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Class

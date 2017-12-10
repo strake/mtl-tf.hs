@@ -29,45 +29,10 @@ import Control.Monad.Error.Class
 import Control.Monad.Reader.Class
 import Control.Monad.State.Class
 import Control.Monad.Trans
-
--- ---------------------------------------------------------------------------
--- Our parameterizable list monad, with an inner monad
-
-newtype ListT m a = ListT { runListT :: m [a] }
-
-mapListT :: (m [a] -> n [b]) -> ListT m a -> ListT n b
-mapListT f m = ListT $ f (runListT m)
-
-instance (Monad m) => Functor (ListT m) where
-    fmap f m = ListT $ do
-        a <- runListT m
-        return (map f a)
-
-instance (Monad m) => Monad (ListT m) where
-    return a = ListT $ return [a]
-    m >>= k  = ListT $ do
-        a <- runListT m
-        b <- mapM (runListT . k) a
-        return (concat b)
-    fail _ = ListT $ return []
-
-instance (Monad m) => MonadPlus (ListT m) where
-    mzero       = ListT $ return []
-    m `mplus` n = ListT $ do
-        a <- runListT m
-        b <- runListT n
-        return (a ++ b)
+import Control.Monad.Trans.List
 
 -- ---------------------------------------------------------------------------
 -- Instances for other mtl transformers
-
-instance MonadTrans ListT where
-    lift m = ListT $ do
-        a <- m
-        return [a]
-
-instance (MonadIO m) => MonadIO (ListT m) where
-    liftIO = lift . liftIO
 
 instance (MonadCont m) => MonadCont (ListT m) where
     callCC f = ListT $

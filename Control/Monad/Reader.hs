@@ -39,7 +39,7 @@ than using the 'Control.Monad.State.State' monad.
 
 module Control.Monad.Reader (
     module Control.Monad.Reader.Class,
-    Reader(..),
+    Reader,
     mapReader,
     withReader,
     ReaderT(..),
@@ -66,7 +66,14 @@ import Control.Monad.Instances ()
 import Control.Monad.Reader.Class
 import Control.Monad.State.Class
 import Control.Monad.Trans
+import Control.Monad.Trans.Reader
 import Control.Monad.Writer.Class
+
+type instance EnvType (ReaderT r m) = r
+
+instance (Monad m) => MonadReader (ReaderT r m) where
+    ask       = ReaderT return
+    local f m = ReaderT $ \r -> runReaderT m (f r)
 
 -- ----------------------------------------------------------------------------
 -- The partially applied function type is a simple reader monad
@@ -77,98 +84,8 @@ instance MonadReader ((->) r) where
     ask       = id
     local f m = m . f
 
-{- |
-The parameterizable reader monad.
-
-The @return@ function creates a @Reader@ that ignores the environment,
-and produces the given value.
-
-The binding operator @>>=@ produces a @Reader@ that uses the environment
-to extract the value its left-hand side,
-and then applies the bound function to that value in the same environment.
--}
-newtype Reader r a = Reader {
-    {- |
-    Runs @Reader@ and extracts the final value from it.
-    To extract the value apply @(runReader reader)@ to an environment value.  
-    Parameters:
-
-    * A @Reader@ to run.
-
-    * An initial environment.
-    -}
-    runReader :: r -> a
-}
-
-mapReader :: (a -> b) -> Reader r a -> Reader r b
-mapReader f m = Reader $ f . runReader m
-
--- | A more general version of 'local'.
-
-withReader :: (r' -> r) -> Reader r a -> Reader r' a
-withReader f m = Reader $ runReader m . f
-
-instance Functor (Reader r) where
-    fmap f m = Reader $ \r -> f (runReader m r)
-
-instance Monad (Reader r) where
-    return a = Reader $ \_ -> a
-    m >>= k  = Reader $ \r -> runReader (k (runReader m r)) r
-
-instance MonadFix (Reader r) where
-    mfix f = Reader $ \r -> let a = runReader (f a) r in a
-
-type instance EnvType (Reader r) = r
-
-instance MonadReader (Reader r) where
-    ask       = Reader id
-    local f m = Reader $ runReader m . f
-
-{- |
-The reader monad transformer.
-Can be used to add environment reading functionality to other monads.
--}
-newtype ReaderT r m a = ReaderT { runReaderT :: r -> m a }
-
-mapReaderT :: (m a -> n b) -> ReaderT w m a -> ReaderT w n b
-mapReaderT f m = ReaderT $ f . runReaderT m
-
-withReaderT :: (r' -> r) -> ReaderT r m a -> ReaderT r' m a
-withReaderT f m = ReaderT $ runReaderT m . f
-
-instance (Monad m) => Functor (ReaderT r m) where
-    fmap f m = ReaderT $ \r -> do
-        a <- runReaderT m r
-        return (f a)
-
-instance (Monad m) => Monad (ReaderT r m) where
-    return a = ReaderT $ \_ -> return a
-    m >>= k  = ReaderT $ \r -> do
-        a <- runReaderT m r
-        runReaderT (k a) r
-    fail msg = ReaderT $ \_ -> fail msg
-
-instance (MonadPlus m) => MonadPlus (ReaderT r m) where
-    mzero       = ReaderT $ \_ -> mzero
-    m `mplus` n = ReaderT $ \r -> runReaderT m r `mplus` runReaderT n r
-
-instance (MonadFix m) => MonadFix (ReaderT r m) where
-    mfix f = ReaderT $ \r -> mfix $ \a -> runReaderT (f a) r
-
-type instance EnvType (ReaderT r m) = r
-
-instance (Monad m) => MonadReader (ReaderT r m) where
-    ask       = ReaderT return
-    local f m = ReaderT $ \r -> runReaderT m (f r)
-
 -- ---------------------------------------------------------------------------
 -- Instances for other mtl transformers
-
-instance MonadTrans (ReaderT r) where
-    lift m = ReaderT $ \_ -> m
-
-instance (MonadIO m) => MonadIO (ReaderT r m) where
-    liftIO = lift . liftIO
 
 instance (MonadCont m) => MonadCont (ReaderT r m) where
     callCC f = ReaderT $ \r ->

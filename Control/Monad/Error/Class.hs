@@ -35,31 +35,12 @@ The Error monad (also called the Exception monad).
     Andy Gill (<http://www.cse.ogi.edu/~andy/>)
 -}
 module Control.Monad.Error.Class (
-    Error(..),
+    Error (..),
     MonadError(..),
     ErrorType
   ) where
 
--- | An exception to be thrown.
--- An instance must redefine at least one of 'noMsg', 'strMsg'.
-class Error a where
-    -- | Creates an exception without a message.
-    -- Default implementation is @'strMsg' \"\"@.
-    noMsg  :: a
-    -- | Creates an exception with a message.
-    -- Default implementation is 'noMsg'.
-    strMsg :: String -> a
-
-    noMsg    = strMsg ""
-    strMsg _ = noMsg
-
--- | A string can be thrown as an error.
-instance Error String where
-    noMsg  = ""
-    strMsg = id
-
-instance Error IOError where
-    strMsg = userError
+import Control.Monad.Trans.Error (Error (..))
 
 type family ErrorType (m :: * -> *)
 
