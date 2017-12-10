@@ -64,25 +64,22 @@ import Control.Monad.Instances ()
 import Data.Monoid
 import System.IO
 
-type instance ErrorType IO = IOError
-
 instance MonadError IO where
+    type ErrorType IO = IOError
     throwError = ioError
     catchError = catch
 
 -- ---------------------------------------------------------------------------
 -- Our parameterizable error monad
 
-type instance ErrorType (Either e) = e
-
 instance (Error e) => MonadError (Either e) where
+    type ErrorType (Either e) = e
     throwError             = Left
     Left  l `catchError` h = h l
     Right r `catchError` _ = Right r
 
-type instance ErrorType (ErrorT e m) = e
-
 instance (Monad m, Error e) => MonadError (ErrorT e m) where
+    type ErrorType (ErrorT e m) = e
     throwError l     = ErrorT $ return (Left l)
     m `catchError` h = ErrorT $ do
         a <- runErrorT m
@@ -98,23 +95,20 @@ instance (Error e, MonadCont m) => MonadCont (ErrorT e m) where
         callCC $ \c ->
         runErrorT (f (\a -> ErrorT $ c (Right a)))
 
-instance (Error e, Monoid (WriterType m), MonadRWS m) => MonadRWS (ErrorT e m)
-
-type instance EnvType (ErrorT e m) = EnvType m
+instance (Error e, Monoid (WritType m), MonadRWS m) => MonadRWS (ErrorT e m)
 
 instance (Error e, MonadReader m) => MonadReader (ErrorT e m) where
+    type EnvType (ErrorT e m) = EnvType m
     ask       = lift ask
     local f m = ErrorT $ local f (runErrorT m)
 
-type instance StateType (ErrorT e m) = StateType m
-
 instance (Error e, MonadState m) => MonadState (ErrorT e m) where
+    type StateType (ErrorT e m) = StateType m
     get = lift get
     put = lift . put
 
-type instance WriterType (ErrorT e m) = WriterType m
-
 instance (Error e, MonadWriter m) => MonadWriter (ErrorT e m) where
+    type WritType (ErrorT e m) = WritType m
     tell     = lift . tell
     listen m = ErrorT $ do
         (a, w) <- listen (runErrorT m)

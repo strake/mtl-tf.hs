@@ -46,9 +46,8 @@ import Control.Monad.Trans.Writer.Strict
 import Control.Monad.Writer.Class
 import Data.Monoid
 
-type instance WriterType (WriterT w m) = w
-
 instance (Monoid w, Monad m) => MonadWriter (WriterT w m) where
+    type WritType (WriterT w m) = w
     tell   w = WriterT $ return ((), w)
     listen m = WriterT $ do
         (a, w) <- runWriterT m
@@ -65,24 +64,21 @@ instance (Monoid w, MonadCont m) => MonadCont (WriterT w m) where
         callCC $ \c ->
         runWriterT (f (\a -> WriterT $ c (a, mempty)))
 
-type instance ErrorType (WriterT w m) = ErrorType m
-
 instance (Monoid w, MonadError m) => MonadError (WriterT w m) where
+    type ErrorType (WriterT w m) = ErrorType m
     throwError       = lift . throwError
     m `catchError` h = WriterT $ runWriterT m
         `catchError` \e -> runWriterT (h e)
 
-type instance EnvType (WriterT w m) = EnvType m
-
 -- This instance needs UndecidableInstances, because
 -- it does not satisfy the coverage condition
 instance (Monoid w, MonadReader m) => MonadReader (WriterT w m) where
+    type EnvType (WriterT w m) = EnvType m
     ask       = lift ask
     local f m = WriterT $ local f (runWriterT m)
 
-type instance StateType (WriterT w m) = StateType m
-
 -- Needs UndecidableInstances
 instance (Monoid w, MonadState m) => MonadState (WriterT w m) where
+    type StateType (WriterT w m) = StateType m
     get = lift get
     put = lift . put

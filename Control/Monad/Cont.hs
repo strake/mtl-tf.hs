@@ -84,19 +84,17 @@ instance (Monad m) => MonadCont (ContT r m) where
 -- ---------------------------------------------------------------------------
 -- Instances for other mtl transformers
 
-type instance EnvType (ContT r m) = EnvType m
-
 -- Needs UndecidableInstances
 instance (MonadReader m) => MonadReader (ContT r m) where
+    type EnvType (ContT r m) = EnvType m
     ask       = lift ask
     local f m = ContT $ \c -> do
         r <- ask
         local f (runContT m (local (const r) . c))
 
-type instance StateType (ContT r m) = StateType m
-
 -- Needs UndecidableInstances
 instance (MonadState m) => MonadState (ContT r m) where
+    type StateType (ContT r m) = StateType m
     get = lift get
     put = lift . put
 

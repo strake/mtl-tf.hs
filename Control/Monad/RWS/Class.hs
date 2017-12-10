@@ -30,6 +30,6 @@ import Control.Monad.State.Class
 import Control.Monad.Writer.Class
 import Data.Monoid
 
-class (Monoid (WriterType m), MonadReader m, MonadWriter m, MonadState m)
+class (Monoid (WritType m), MonadReader m, MonadWriter m, MonadState m)
    => MonadRWS m
 

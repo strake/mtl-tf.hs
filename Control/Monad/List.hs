@@ -39,22 +39,19 @@ instance (MonadCont m) => MonadCont (ListT m) where
         callCC $ \c ->
         runListT (f (\a -> ListT $ c [a]))
 
-type instance ErrorType (ListT m) = ErrorType m
-
 instance (MonadError m) => MonadError (ListT m) where
+    type ErrorType (ListT m) = ErrorType m
     throwError       = lift . throwError
     m `catchError` h = ListT $ runListT m
         `catchError` \e -> runListT (h e)
 
-type instance EnvType (ListT m) = EnvType m
-
 instance (MonadReader m) => MonadReader (ListT m) where
+    type EnvType (ListT m) = EnvType m
     ask       = lift ask
     local f m = ListT $ local f (runListT m)
 
-type instance StateType (ListT m) = StateType m
-
 instance (MonadState m) => MonadState (ListT m) where
+    type StateType (ListT m) = StateType m
     get = lift get
     put = lift . put
 

@@ -37,12 +37,9 @@ The Error monad (also called the Exception monad).
 module Control.Monad.Error.Class (
     Error (..),
     MonadError(..),
-    ErrorType
   ) where
 
 import Control.Monad.Trans.Error (Error (..))
-
-type family ErrorType (m :: * -> *)
 
 {- |
 The strategy of combining computations that can throw exceptions
@@ -61,6 +58,8 @@ In these cases you will have to explicitly define instances of the 'Error'
 and\/or 'MonadError' classes.
 -}
 class (Monad m) => MonadError m where
+    type ErrorType m
+
     -- | Is used within a monadic computation to begin exception processing.
     throwError :: (Error (ErrorType m)) => ErrorType m -> m a
 

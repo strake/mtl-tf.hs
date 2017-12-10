@@ -25,12 +25,9 @@ module Control.Monad.Writer.Class (
     MonadWriter(..),
     listens,
     censor,
-    WriterType
   ) where
 
 import Data.Monoid
-
-type family WriterType (m :: * -> *)
 
 -- ---------------------------------------------------------------------------
 -- MonadWriter class
@@ -44,17 +41,18 @@ type family WriterType (m :: * -> *)
 -- pass lets you provide a writer transformer which changes internals of
 -- the written object.
 
-class (Monoid (WriterType m), Monad m) => MonadWriter m where
-    tell   :: WriterType m -> m ()
-    listen :: m a -> m (a, WriterType m)
-    pass   :: m (a, WriterType m -> WriterType m) -> m a
+class (Monoid (WritType m), Monad m) => MonadWriter m where
+    type WritType m
+    tell   :: WritType m -> m ()
+    listen :: m a -> m (a, WritType m)
+    pass   :: m (a, WritType m -> WritType m) -> m a
 
-listens :: (MonadWriter m) => (WriterType m -> b) -> m a -> m (a, b)
+listens :: (MonadWriter m) => (WritType m -> b) -> m a -> m (a, b)
 listens f m = do
     ~(a, w) <- listen m
     return (a, f w)
 
-censor :: (MonadWriter m) => (WriterType m -> WriterType m) -> m a -> m a
+censor :: (MonadWriter m) => (WritType m -> WritType m) -> m a -> m a
 censor f m = pass $ do
     a <- m
     return (a, f)

@@ -49,15 +49,13 @@ import Control.Monad.Trans.RWS.Strict
 import Control.Monad.Writer.Class
 import Data.Monoid
 
-type instance EnvType (RWST r w s m) = r
-
 instance (Monoid w, Monad m) => MonadReader (RWST r w s m) where
+    type EnvType (RWST r w s m) = r
     ask       = RWST $ \r s -> return (r, s, mempty)
     local f m = RWST $ \r s -> runRWST m (f r) s
 
-type instance WriterType (RWST r w s m) = w
-
 instance (Monoid w, Monad m) => MonadWriter (RWST r w s m) where
+    type WritType (RWST r w s m) = w
     tell   w = RWST $ \_ s -> return ((),s,w)
     listen m = RWST $ \r s -> do
         (a, s', w) <- runRWST m r s
@@ -66,9 +64,8 @@ instance (Monoid w, Monad m) => MonadWriter (RWST r w s m) where
         ((a, f), s', w) <- runRWST m r s
         return (a, s', f w)
 
-type instance StateType (RWST r w s m) = s
-
 instance (Monoid w, Monad m) => MonadState (RWST r w s m) where
+    type StateType (RWST r w s m) = s
     get   = RWST $ \_ s -> return (s, s, mempty)
     put s = RWST $ \_ _ -> return ((), s, mempty)
 
@@ -82,9 +79,8 @@ instance (Monoid w, MonadCont m) => MonadCont (RWST r w s m) where
         callCC $ \c ->
         runRWST (f (\a -> RWST $ \_ s' -> c (a, s', mempty))) r s
 
-type instance ErrorType (RWST r w s m) = ErrorType m
-
 instance (Monoid w, MonadError m) => MonadError (RWST r w s m) where
+    type ErrorType (RWST r w s m) = ErrorType m
     throwError       = lift . throwError
     m `catchError` h = RWST $ \r s -> runRWST m r s
         `catchError` \e -> runRWST (h e) r s

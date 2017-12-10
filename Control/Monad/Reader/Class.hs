@@ -40,10 +40,7 @@ than using the 'Control.Monad.State.State' monad.
 module Control.Monad.Reader.Class (
     MonadReader(..),
     asks,
-    EnvType
     ) where
-
-type family EnvType (m :: * -> *)
 
 {- |
 See examples in "Control.Monad.Reader".
@@ -51,6 +48,8 @@ Note, the partially applied function type @(->) r@ is a simple reader monad.
 See the @instance@ declaration below.
 -}
 class (Monad m) => MonadReader m where
+    type EnvType m
+
     -- | Retrieves the monad environment.
     ask   :: m (EnvType m)
     {- | Executes a computation in a modified environment. Parameters:

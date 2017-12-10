@@ -55,9 +55,8 @@ import Control.Monad.Trans
 import Control.Monad.Trans.State.Strict
 import Control.Monad.Writer.Class
 
-type instance StateType (StateT s m) = s
-
 instance (Monad m) => MonadState (StateT s m) where
+    type StateType (StateT s m) = s
     get   = StateT $ \s -> return (s, s)
     put s = StateT $ \_ -> return ((), s)
 
@@ -69,24 +68,21 @@ instance (MonadCont m) => MonadCont (StateT s m) where
         callCC $ \c ->
         runStateT (f (\a -> StateT $ \s' -> c (a, s'))) s
 
-type instance ErrorType (StateT s m) = ErrorType m
-
 instance (MonadError m) => MonadError (StateT s m) where
+    type ErrorType (StateT s m) = ErrorType m
     throwError       = lift . throwError
     m `catchError` h = StateT $ \s -> runStateT m s
         `catchError` \e -> runStateT (h e) s
 
-type instance EnvType (StateT s m) = EnvType m
-
 -- Needs UndecidableInstances
 instance (MonadReader m) => MonadReader (StateT s m) where
+    type EnvType (StateT s m) = EnvType m
     ask       = lift ask
     local f m = StateT $ \s -> local f (runStateT m s)
 
-type instance WriterType (StateT s m) = WriterType m
-
 -- Needs UndecidableInstances
 instance (MonadWriter m) => MonadWriter (StateT s m) where
+    type WritType (StateT s m) = WritType m
     tell     = lift . tell
     listen m = StateT $ \s -> do
         ((a, s'), w) <- listen (runStateT m s)

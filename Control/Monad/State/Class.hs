@@ -24,10 +24,7 @@ module Control.Monad.State.Class (
     MonadState(..),
     modify,
     gets,
-    StateType
   ) where
-
-type family StateType (m :: * -> *)
 
 -- ---------------------------------------------------------------------------
 -- | /get/ returns the state from the internals of the monad.
@@ -35,6 +32,7 @@ type family StateType (m :: * -> *)
 -- /put/ replaces the state inside the monad.
 
 class (Monad m) => MonadState m where
+    type StateType m
     get :: m (StateType m)
     put :: StateType m -> m ()
 

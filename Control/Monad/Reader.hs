@@ -69,18 +69,16 @@ import Control.Monad.Trans
 import Control.Monad.Trans.Reader
 import Control.Monad.Writer.Class
 
-type instance EnvType (ReaderT r m) = r
-
 instance (Monad m) => MonadReader (ReaderT r m) where
+    type EnvType (ReaderT r m) = r
     ask       = ReaderT return
     local f m = ReaderT $ \r -> runReaderT m (f r)
 
 -- ----------------------------------------------------------------------------
 -- The partially applied function type is a simple reader monad
 
-type instance EnvType ((->) r) = r
-
 instance MonadReader ((->) r) where
+    type EnvType ((->) r) = r
     ask       = id
     local f m = m . f
 
@@ -92,25 +90,22 @@ instance (MonadCont m) => MonadCont (ReaderT r m) where
         callCC $ \c ->
         runReaderT (f (\a -> ReaderT $ \_ -> c a)) r
 
-type instance ErrorType (ReaderT r m) = ErrorType m
-
 instance (MonadError m) => MonadError (ReaderT r m) where
+    type ErrorType (ReaderT r m) = ErrorType m
     throwError       = lift . throwError
     m `catchError` h = ReaderT $ \r -> runReaderT m r
         `catchError` \e -> runReaderT (h e) r
 
-type instance StateType (ReaderT r m) = StateType m 
-
 -- Needs UndecidableInstances
 instance (MonadState m) => MonadState (ReaderT r m) where
+    type StateType (ReaderT r m) = StateType m 
     get = lift get
     put = lift . put
-
-type instance WriterType (ReaderT r m) = WriterType m
 
 -- This instance needs UndecidableInstances, because
 -- it does not satisfy the coverage condition
 instance (MonadWriter m) => MonadWriter (ReaderT r m) where
+    type WritType (ReaderT r m) = WritType m
     tell     = lift . tell
     listen m = ReaderT $ \w -> listen (runReaderT m w)
     pass   m = ReaderT $ \w -> pass   (runReaderT m w)
