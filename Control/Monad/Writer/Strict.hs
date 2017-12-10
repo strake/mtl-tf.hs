@@ -1,6 +1,5 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# OPTIONS -fallow-undecidable-instances #-}
--- Search for -fallow-undecidable-instances to see why this is needed
+{-# LANGUAGE UndecidableInstances #-}
+-- Search for UndecidableInstances to see why this is needed
 
 -----------------------------------------------------------------------------
 -- |
@@ -148,7 +147,7 @@ instance (Monoid w, MonadError m) => MonadError (WriterT w m) where
 
 type instance EnvType (WriterT w m) = EnvType m
 
--- This instance needs -fallow-undecidable-instances, because
+-- This instance needs UndecidableInstances, because
 -- it does not satisfy the coverage condition
 instance (Monoid w, MonadReader m) => MonadReader (WriterT w m) where
     ask       = lift ask
@@ -156,7 +155,7 @@ instance (Monoid w, MonadReader m) => MonadReader (WriterT w m) where
 
 type instance StateType (WriterT w m) = StateType m
 
--- Needs -fallow-undecidable-instances
+-- Needs UndecidableInstances
 instance (Monoid w, MonadState m) => MonadState (WriterT w m) where
     get = lift get
     put = lift . put

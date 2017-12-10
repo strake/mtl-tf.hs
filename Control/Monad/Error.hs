@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts #-}
-{-# OPTIONS -fallow-undecidable-instances #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- Needed for the same reasons as in Reader, State etc
 
 {- |

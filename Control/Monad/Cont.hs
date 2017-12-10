@@ -1,6 +1,5 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# OPTIONS -fallow-undecidable-instances #-}
--- Search for -fallow-undecidable-instances to see why this is needed
+{-# LANGUAGE UndecidableInstances #-}
+-- Search for UndecidableInstances to see why this is needed
 
 {- |
 Module      :  Control.Monad.Cont
@@ -149,7 +148,7 @@ instance (MonadIO m) => MonadIO (ContT r m) where
 
 type instance EnvType (ContT r m) = EnvType m
 
--- Needs -fallow-undecidable-instances
+-- Needs UndecidableInstances
 instance (MonadReader m) => MonadReader (ContT r m) where
     ask       = lift ask
     local f m = ContT $ \c -> do
@@ -158,7 +157,7 @@ instance (MonadReader m) => MonadReader (ContT r m) where
 
 type instance StateType (ContT r m) = StateType m
 
--- Needs -fallow-undecidable-instances
+-- Needs UndecidableInstances
 instance (MonadState m) => MonadState (ContT r m) where
     get = lift get
     put = lift . put

@@ -1,6 +1,5 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# OPTIONS -fallow-undecidable-instances #-}
--- Search for -fallow-undecidable-instances to see why this is needed
+{-# LANGUAGE UndecidableInstances #-}
+-- Search for UndecidableInstances to see why this is needed
 
 -----------------------------------------------------------------------------
 -- |
@@ -219,14 +218,14 @@ instance (MonadError m) => MonadError (StateT s m) where
 
 type instance EnvType (StateT s m) = EnvType m
 
--- Needs -fallow-undecidable-instances
+-- Needs UndecidableInstances
 instance (MonadReader m) => MonadReader (StateT s m) where
     ask       = lift ask
     local f m = StateT $ \s -> local f (runStateT m s)
 
 type instance WriterType (StateT s m) = WriterType m
 
--- Needs -fallow-undecidable-instances
+-- Needs UndecidableInstances
 instance (MonadWriter m) => MonadWriter (StateT s m) where
     tell     = lift . tell
     listen m = StateT $ \s -> do

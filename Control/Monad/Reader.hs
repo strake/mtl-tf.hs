@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# OPTIONS -fallow-undecidable-instances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {- |
 Module      :  Control.Monad.Reader
 Copyright   :  (c) Andy Gill 2001,
@@ -185,14 +184,14 @@ instance (MonadError m) => MonadError (ReaderT r m) where
 
 type instance StateType (ReaderT r m) = StateType m 
 
--- Needs -fallow-undecidable-instances
+-- Needs UndecidableInstances
 instance (MonadState m) => MonadState (ReaderT r m) where
     get = lift get
     put = lift . put
 
 type instance WriterType (ReaderT r m) = WriterType m
 
--- This instance needs -fallow-undecidable-instances, because
+-- This instance needs UndecidableInstances, because
 -- it does not satisfy the coverage condition
 instance (MonadWriter m) => MonadWriter (ReaderT r m) where
     tell     = lift . tell

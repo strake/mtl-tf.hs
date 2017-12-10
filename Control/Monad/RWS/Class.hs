@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.RWS.Class

@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.State.Class
