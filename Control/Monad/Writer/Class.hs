@@ -27,7 +27,9 @@ module Control.Monad.Writer.Class (
     censor,
   ) where
 
-import Data.Monoid
+import Control.Monad.Trans.All
+import qualified Control.Monad.Trans.All.Strict as Strict
+import Control.Monad.Trans.Class
 
 -- ---------------------------------------------------------------------------
 -- MonadWriter class
@@ -57,3 +59,84 @@ censor f m = pass $ do
     a <- m
     return (a, f)
 
+instance (Error e, MonadWriter m) => MonadWriter (ErrorT e m) where
+    type WritType (ErrorT e m) = WritType m
+    tell     = lift . tell
+    listen m = ErrorT $ do
+        (a, w) <- listen (runErrorT m)
+        case a of
+            Left  l -> return $ Left  l
+            Right r -> return $ Right (r, w)
+    pass   m = ErrorT $ pass $ do
+        a <- runErrorT m
+        case a of
+            Left  l      -> return (Left  l, id)
+            Right (r, f) -> return (Right r, f)
+
+instance (MonadWriter m) => MonadWriter (ReaderT r m) where
+    type WritType (ReaderT r m) = WritType m
+    tell     = lift . tell
+    listen m = ReaderT $ \w -> listen (runReaderT m w)
+    pass   m = ReaderT $ \w -> pass   (runReaderT m w)
+
+instance (Monoid w, Monad m) => MonadWriter (RWST r w s m) where
+    type WritType (RWST r w s m) = w
+    tell   w = RWST $ \_ s -> return ((),s,w)
+    listen m = RWST $ \r s -> do
+        ~(a, s', w) <- runRWST m r s
+        return ((a, w), s', w)
+    pass   m = RWST $ \r s -> do
+        ~((a, f), s', w) <- runRWST m r s
+        return (a, s', f w)
+
+instance (Monoid w, Monad m) => MonadWriter (Strict.RWST r w s m) where
+    type WritType (Strict.RWST r w s m) = w
+    tell   w = Strict.RWST $ \_ s -> return ((),s,w)
+    listen m = Strict.RWST $ \r s -> do
+        (a, s', w) <- Strict.runRWST m r s
+        return ((a, w), s', w)
+    pass   m = Strict.RWST $ \r s -> do
+        ((a, f), s', w) <- Strict.runRWST m r s
+        return (a, s', f w)
+
+-- Needs UndecidableInstances
+instance (MonadWriter m) => MonadWriter (StateT s m) where
+    type WritType (StateT s m) = WritType m
+    tell     = lift . tell
+    listen m = StateT $ \s -> do
+        ~((a, s'), w) <- listen (runStateT m s)
+        return ((a, w), s')
+    pass   m = StateT $ \s -> pass $ do
+        ~((a, f), s') <- runStateT m s
+        return ((a, s'), f)
+
+-- Needs UndecidableInstances
+instance (MonadWriter m) => MonadWriter (Strict.StateT s m) where
+    type WritType (Strict.StateT s m) = WritType m
+    tell     = lift . tell
+    listen m = Strict.StateT $ \s -> do
+        ((a, s'), w) <- listen (Strict.runStateT m s)
+        return ((a, w), s')
+    pass   m = Strict.StateT $ \s -> pass $ do
+        ((a, f), s') <- Strict.runStateT m s
+        return ((a, s'), f)
+
+instance (Monoid w, Monad m) => MonadWriter (WriterT w m) where
+    type WritType (WriterT w m) = w
+    tell   w = WriterT $ return ((), w)
+    listen m = WriterT $ do
+        ~(a, w) <- runWriterT m
+        return ((a, w), w)
+    pass   m = WriterT $ do
+        ~((a, f), w) <- runWriterT m
+        return (a, f w)
+
+instance (Monoid w, Monad m) => MonadWriter (Strict.WriterT w m) where
+    type WritType (Strict.WriterT w m) = w
+    tell   w = Strict.WriterT $ return ((), w)
+    listen m = Strict.WriterT $ do
+        (a, w) <- Strict.runWriterT m
+        return ((a, w), w)
+    pass   m = Strict.WriterT $ do
+        ((a, f), w) <- Strict.runWriterT m
+        return (a, f w)

@@ -46,50 +46,10 @@ module Control.Monad.State.Strict (
   ) where
 
 import Control.Monad
-import Control.Monad.Cont.Class
-import Control.Monad.Error.Class
 import Control.Monad.Fix
-import Control.Monad.Reader.Class
 import Control.Monad.State.Class
 import Control.Monad.Trans
 import Control.Monad.Trans.State.Strict
-import Control.Monad.Writer.Class
-
-instance (Monad m) => MonadState (StateT s m) where
-    type StateType (StateT s m) = s
-    get   = StateT $ \s -> return (s, s)
-    put s = StateT $ \_ -> return ((), s)
-
--- ---------------------------------------------------------------------------
--- Instances for other mtl transformers
-
-instance (MonadCont m) => MonadCont (StateT s m) where
-    callCC f = StateT $ \s ->
-        callCC $ \c ->
-        runStateT (f (\a -> StateT $ \s' -> c (a, s'))) s
-
-instance (MonadError m) => MonadError (StateT s m) where
-    type ErrorType (StateT s m) = ErrorType m
-    throwError       = lift . throwError
-    m `catchError` h = StateT $ \s -> runStateT m s
-        `catchError` \e -> runStateT (h e) s
-
--- Needs UndecidableInstances
-instance (MonadReader m) => MonadReader (StateT s m) where
-    type EnvType (StateT s m) = EnvType m
-    ask       = lift ask
-    local f m = StateT $ \s -> local f (runStateT m s)
-
--- Needs UndecidableInstances
-instance (MonadWriter m) => MonadWriter (StateT s m) where
-    type WritType (StateT s m) = WritType m
-    tell     = lift . tell
-    listen m = StateT $ \s -> do
-        ((a, s'), w) <- listen (runStateT m s)
-        return ((a, w), s')
-    pass   m = StateT $ \s -> pass $ do
-        ((a, f), s') <- runStateT m s
-        return ((a, s'), f)
 
 -- ---------------------------------------------------------------------------
 -- $examples

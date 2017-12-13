@@ -42,6 +42,10 @@ module Control.Monad.Reader.Class (
     asks,
     ) where
 
+import Control.Monad.Trans.All
+import qualified Control.Monad.Trans.All.Strict as Strict
+import Control.Monad.Trans.Class
+
 {- |
 See examples in "Control.Monad.Reader".
 Note, the partially applied function type @(->) r@ is a simple reader monad.
@@ -74,3 +78,65 @@ asks f = do
     r <- ask
     return (f r)
 
+instance (Monad m) => MonadReader (ReaderT r m) where
+    type EnvType (ReaderT r m) = r
+    ask       = ReaderT return
+    local f m = ReaderT $ \r -> runReaderT m (f r)
+
+-- ----------------------------------------------------------------------------
+-- The partially applied function type is a simple reader monad
+
+instance MonadReader ((->) r) where
+    type EnvType ((->) r) = r
+    ask       = id
+    local f m = m . f
+
+-- ---------------------------------------------------------------------------
+-- Instances for other mtl transformers
+
+instance (MonadReader m) => MonadReader (ContT r m) where
+    type EnvType (ContT r m) = EnvType m
+    ask       = lift ask
+    local f m = ContT $ \c -> do
+        r <- ask
+        local f (runContT m (local (const r) . c))
+
+instance (Error e, MonadReader m) => MonadReader (ErrorT e m) where
+    type EnvType (ErrorT e m) = EnvType m
+    ask       = lift ask
+    local f m = ErrorT $ local f (runErrorT m)
+
+instance (MonadReader m) => MonadReader (ListT m) where
+    type EnvType (ListT m) = EnvType m
+    ask       = lift ask
+    local f m = ListT $ local f (runListT m)
+
+instance (Monoid w, Monad m) => MonadReader (RWST r w s m) where
+    type EnvType (RWST r w s m) = r
+    ask       = RWST $ \r s -> return (r, s, mempty)
+    local f m = RWST $ \r s -> runRWST m (f r) s
+
+instance (Monoid w, Monad m) => MonadReader (Strict.RWST r w s m) where
+    type EnvType (Strict.RWST r w s m) = r
+    ask       = Strict.RWST $ \r s -> return (r, s, mempty)
+    local f m = Strict.RWST $ \r s -> Strict.runRWST m (f r) s
+
+instance (MonadReader m) => MonadReader (StateT s m) where
+    type EnvType (StateT s m) = EnvType m
+    ask       = lift ask
+    local f m = StateT $ \s -> local f (runStateT m s)
+
+instance (MonadReader m) => MonadReader (Strict.StateT s m) where
+    type EnvType (Strict.StateT s m) = EnvType m
+    ask       = lift ask
+    local f m = Strict.StateT $ \s -> local f (Strict.runStateT m s)
+
+instance (Monoid w, MonadReader m) => MonadReader (WriterT w m) where
+    type EnvType (WriterT w m) = EnvType m
+    ask       = lift ask
+    local f m = WriterT $ local f (runWriterT m)
+
+instance (Monoid w, MonadReader m) => MonadReader (Strict.WriterT w m) where
+    type EnvType (Strict.WriterT w m) = EnvType m
+    ask       = lift ask
+    local f m = Strict.WriterT $ local f (Strict.runWriterT m)

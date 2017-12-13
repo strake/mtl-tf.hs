@@ -73,30 +73,8 @@ module Control.Monad.Cont (
 
 import Control.Monad
 import Control.Monad.Cont.Class
-import Control.Monad.Reader.Class
-import Control.Monad.State.Class
 import Control.Monad.Trans
 import Control.Monad.Trans.Cont
-
-instance (Monad m) => MonadCont (ContT r m) where
-    callCC f = ContT $ \c -> runContT (f (\a -> ContT $ \_ -> c a)) c
-
--- ---------------------------------------------------------------------------
--- Instances for other mtl transformers
-
--- Needs UndecidableInstances
-instance (MonadReader m) => MonadReader (ContT r m) where
-    type EnvType (ContT r m) = EnvType m
-    ask       = lift ask
-    local f m = ContT $ \c -> do
-        r <- ask
-        local f (runContT m (local (const r) . c))
-
--- Needs UndecidableInstances
-instance (MonadState m) => MonadState (ContT r m) where
-    type StateType (ContT r m) = StateType m
-    get = lift get
-    put = lift . put
 
 {- $simpleContExample
 Calculating length of a list continuation-style:

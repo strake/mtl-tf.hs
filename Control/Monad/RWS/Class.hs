@@ -25,11 +25,17 @@ module Control.Monad.RWS.Class (
     module Control.Monad.Writer.Class,
   ) where
 
+import Control.Monad.Trans.All
+import qualified Control.Monad.Trans.All.Strict as Strict
 import Control.Monad.Reader.Class
 import Control.Monad.State.Class
 import Control.Monad.Writer.Class
-import Data.Monoid
 
 class (Monoid (WritType m), MonadReader m, MonadWriter m, MonadState m)
    => MonadRWS m
 
+instance (Error e, Monoid (WritType m), MonadRWS m) => MonadRWS (ErrorT e m)
+
+instance (Monoid w, Monad m) => MonadRWS (RWST r w s m)
+
+instance (Monoid w, Monad m) => MonadRWS (Strict.RWST r w s m)

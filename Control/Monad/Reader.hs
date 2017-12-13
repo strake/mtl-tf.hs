@@ -59,56 +59,10 @@ module Control.Monad.Reader (
     ) where
 
 import Control.Monad
-import Control.Monad.Cont.Class
-import Control.Monad.Error.Class
 import Control.Monad.Fix
-import Control.Monad.Instances ()
 import Control.Monad.Reader.Class
-import Control.Monad.State.Class
 import Control.Monad.Trans
 import Control.Monad.Trans.Reader
-import Control.Monad.Writer.Class
-
-instance (Monad m) => MonadReader (ReaderT r m) where
-    type EnvType (ReaderT r m) = r
-    ask       = ReaderT return
-    local f m = ReaderT $ \r -> runReaderT m (f r)
-
--- ----------------------------------------------------------------------------
--- The partially applied function type is a simple reader monad
-
-instance MonadReader ((->) r) where
-    type EnvType ((->) r) = r
-    ask       = id
-    local f m = m . f
-
--- ---------------------------------------------------------------------------
--- Instances for other mtl transformers
-
-instance (MonadCont m) => MonadCont (ReaderT r m) where
-    callCC f = ReaderT $ \r ->
-        callCC $ \c ->
-        runReaderT (f (\a -> ReaderT $ \_ -> c a)) r
-
-instance (MonadError m) => MonadError (ReaderT r m) where
-    type ErrorType (ReaderT r m) = ErrorType m
-    throwError       = lift . throwError
-    m `catchError` h = ReaderT $ \r -> runReaderT m r
-        `catchError` \e -> runReaderT (h e) r
-
--- Needs UndecidableInstances
-instance (MonadState m) => MonadState (ReaderT r m) where
-    type StateType (ReaderT r m) = StateType m 
-    get = lift get
-    put = lift . put
-
--- This instance needs UndecidableInstances, because
--- it does not satisfy the coverage condition
-instance (MonadWriter m) => MonadWriter (ReaderT r m) where
-    type WritType (ReaderT r m) = WritType m
-    tell     = lift . tell
-    listen m = ReaderT $ \w -> listen (runReaderT m w)
-    pass   m = ReaderT $ \w -> pass   (runReaderT m w)
 
 {- $simpleReaderExample
 

@@ -39,7 +39,10 @@ module Control.Monad.Error.Class (
     MonadError(..),
   ) where
 
-import Control.Monad.Trans.Error (Error (..))
+import Control.Exception
+import Control.Monad.Trans.All
+import qualified Control.Monad.Trans.All.Strict as Strict
+import Control.Monad.Trans.Class
 
 {- |
 The strategy of combining computations that can throw exceptions
@@ -74,3 +77,73 @@ class (Monad m) => MonadError m where
     -}
     catchError :: (Error (ErrorType m)) => m a -> (ErrorType m -> m a) -> m a
 
+instance MonadError IO where
+    type ErrorType IO = IOError
+    throwError = ioError
+    catchError = catch
+
+-- ---------------------------------------------------------------------------
+-- Our parameterizable error monad
+
+instance (Error e) => MonadError (Either e) where
+    type ErrorType (Either e) = e
+    throwError             = Left
+    Left  l `catchError` h = h l
+    Right r `catchError` _ = Right r
+
+instance (Monad m, Error e) => MonadError (ErrorT e m) where
+    type ErrorType (ErrorT e m) = e
+    throwError l     = ErrorT $ return (Left l)
+    m `catchError` h = ErrorT $ do
+        a <- runErrorT m
+        case a of
+            Left  l -> runErrorT (h l)
+            Right r -> return (Right r)
+
+instance (MonadError m) => MonadError (ListT m) where
+    type ErrorType (ListT m) = ErrorType m
+    throwError       = lift . throwError
+    m `catchError` h = ListT $ runListT m
+        `catchError` \e -> runListT (h e)
+
+instance (MonadError m) => MonadError (ReaderT r m) where
+    type ErrorType (ReaderT r m) = ErrorType m
+    throwError       = lift . throwError
+    m `catchError` h = ReaderT $ \r -> runReaderT m r
+        `catchError` \e -> runReaderT (h e) r
+
+instance (Monoid w, MonadError m) => MonadError (RWST r w s m) where
+    type ErrorType (RWST r w s m) = ErrorType m
+    throwError       = lift . throwError
+    m `catchError` h = RWST $ \r s -> runRWST m r s
+        `catchError` \e -> runRWST (h e) r s
+
+instance (Monoid w, MonadError m) => MonadError (Strict.RWST r w s m) where
+    type ErrorType (Strict.RWST r w s m) = ErrorType m
+    throwError       = lift . throwError
+    m `catchError` h = Strict.RWST $ \r s -> Strict.runRWST m r s
+        `catchError` \e -> Strict.runRWST (h e) r s
+
+instance (MonadError m) => MonadError (StateT s m) where
+    type ErrorType (StateT s m) = ErrorType m
+    throwError       = lift . throwError
+    m `catchError` h = StateT $ \s -> runStateT m s
+        `catchError` \e -> runStateT (h e) s
+
+instance (MonadError m) => MonadError (Strict.StateT s m) where
+    type ErrorType (Strict.StateT s m) = ErrorType m
+    throwError       = lift . throwError
+    m `catchError` h = Strict.StateT $ \s -> Strict.runStateT m s
+        `catchError` \e -> Strict.runStateT (h e) s
+
+instance (Monoid w, MonadError m) => MonadError (WriterT w m) where
+    type ErrorType (WriterT w m) = ErrorType m
+    throwError       = lift . throwError
+    m `catchError` h = WriterT $ runWriterT m
+        `catchError` \e -> runWriterT (h e)
+
+instance (Monoid w, MonadError m) => MonadError (Strict.WriterT w m) where
+    type ErrorType (Strict.WriterT w m) = ErrorType m
+    throwError       = lift . throwError
+    m `catchError` h = Strict.WriterT $ Strict.runWriterT m
+        `catchError` \e -> Strict.runWriterT (h e)

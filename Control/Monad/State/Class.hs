@@ -26,6 +26,10 @@ module Control.Monad.State.Class (
     gets,
   ) where
 
+import Control.Monad.Trans.All
+import qualified Control.Monad.Trans.All.Strict as Strict
+import Control.Monad.Trans.Class
+
 -- ---------------------------------------------------------------------------
 -- | /get/ returns the state from the internals of the monad.
 --
@@ -61,3 +65,52 @@ gets f = do
     s <- get
     return (f s)
 
+instance (MonadState m) => MonadState (ContT r m) where
+    type StateType (ContT r m) = StateType m
+    get = lift get
+    put = lift . put
+
+instance (Error e, MonadState m) => MonadState (ErrorT e m) where
+    type StateType (ErrorT e m) = StateType m
+    get = lift get
+    put = lift . put
+
+instance (MonadState m) => MonadState (ListT m) where
+    type StateType (ListT m) = StateType m
+    get = lift get
+    put = lift . put
+
+instance (MonadState m) => MonadState (ReaderT r m) where
+    type StateType (ReaderT r m) = StateType m
+    get = lift get
+    put = lift . put
+
+instance (Monoid w, Monad m) => MonadState (RWST r w s m) where
+    type StateType (RWST r w s m) = s
+    get   = RWST $ \_ s -> return (s, s, mempty)
+    put s = RWST $ \_ _ -> return ((), s, mempty)
+
+instance (Monoid w, Monad m) => MonadState (Strict.RWST r w s m) where
+    type StateType (Strict.RWST r w s m) = s
+    get   = Strict.RWST $ \_ s -> return (s, s, mempty)
+    put s = Strict.RWST $ \_ _ -> return ((), s, mempty)
+
+instance (Monad m) => MonadState (StateT s m) where
+    type StateType (StateT s m) = s
+    get   = StateT $ \s -> return (s, s)
+    put s = StateT $ \_ -> return ((), s)
+
+instance (Monad m) => MonadState (Strict.StateT s m) where
+    type StateType (Strict.StateT s m) = s
+    get   = Strict.StateT $ \s -> return (s, s)
+    put s = Strict.StateT $ \_ -> return ((), s)
+
+instance (Monoid w, MonadState m) => MonadState (WriterT w m) where
+    type StateType (WriterT w m) = StateType m
+    get = lift get
+    put = lift . put
+
+instance (Monoid w, MonadState m) => MonadState (Strict.WriterT w m) where
+    type StateType (Strict.WriterT w m) = StateType m
+    get = lift get
+    put = lift . put

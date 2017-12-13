@@ -48,78 +48,11 @@ module Control.Monad.Error (
     -- $ErrorTExample
   ) where
 
-import Control.Exception
 import Control.Monad
-import Control.Monad.Cont.Class
 import Control.Monad.Error.Class
 import Control.Monad.Fix
-import Control.Monad.RWS.Class
-import Control.Monad.Reader.Class
-import Control.Monad.State.Class
 import Control.Monad.Trans
 import Control.Monad.Trans.Error
-import Control.Monad.Writer.Class
-
-import Control.Monad.Instances ()
-import Data.Monoid
-import System.IO
-
-instance MonadError IO where
-    type ErrorType IO = IOError
-    throwError = ioError
-    catchError = catch
-
--- ---------------------------------------------------------------------------
--- Our parameterizable error monad
-
-instance (Error e) => MonadError (Either e) where
-    type ErrorType (Either e) = e
-    throwError             = Left
-    Left  l `catchError` h = h l
-    Right r `catchError` _ = Right r
-
-instance (Monad m, Error e) => MonadError (ErrorT e m) where
-    type ErrorType (ErrorT e m) = e
-    throwError l     = ErrorT $ return (Left l)
-    m `catchError` h = ErrorT $ do
-        a <- runErrorT m
-        case a of
-            Left  l -> runErrorT (h l)
-            Right r -> return (Right r)
-
--- ---------------------------------------------------------------------------
--- Instances for other mtl transformers
-
-instance (Error e, MonadCont m) => MonadCont (ErrorT e m) where
-    callCC f = ErrorT $
-        callCC $ \c ->
-        runErrorT (f (\a -> ErrorT $ c (Right a)))
-
-instance (Error e, Monoid (WritType m), MonadRWS m) => MonadRWS (ErrorT e m)
-
-instance (Error e, MonadReader m) => MonadReader (ErrorT e m) where
-    type EnvType (ErrorT e m) = EnvType m
-    ask       = lift ask
-    local f m = ErrorT $ local f (runErrorT m)
-
-instance (Error e, MonadState m) => MonadState (ErrorT e m) where
-    type StateType (ErrorT e m) = StateType m
-    get = lift get
-    put = lift . put
-
-instance (Error e, MonadWriter m) => MonadWriter (ErrorT e m) where
-    type WritType (ErrorT e m) = WritType m
-    tell     = lift . tell
-    listen m = ErrorT $ do
-        (a, w) <- listen (runErrorT m)
-        case a of
-            Left  l -> return $ Left  l
-            Right r -> return $ Right (r, w)
-    pass   m = ErrorT $ pass $ do
-        a <- runErrorT m
-        case a of
-            Left  l      -> return (Left  l, id)
-            Right (r, f) -> return (Right r, f)
 
 {- $customErrorExample
 Here is an example that demonstrates the use of a custom 'Error' data type with

@@ -55,6 +55,9 @@ module Control.Monad.Cont.Class (
     MonadCont(..),
   ) where
 
+import Control.Monad.Trans.All
+import qualified Control.Monad.Trans.All.Strict as Strict
+
 class (Monad m) => MonadCont m where
     {- | @callCC@ (call-with-current-continuation)
     calls a function with the current continuation as its argument.
@@ -75,4 +78,52 @@ class (Monad m) => MonadCont m where
     even if it is many layers deep within nested computations.
     -}
     callCC :: ((a -> m b) -> m a) -> m a
+
+instance (Monad m) => MonadCont (ContT r m) where
+    callCC f = ContT $ \c -> runContT (f (\a -> ContT $ \_ -> c a)) c
+
+instance (Error e, MonadCont m) => MonadCont (ErrorT e m) where
+    callCC f = ErrorT $
+        callCC $ \c ->
+        runErrorT (f (\a -> ErrorT $ c (Right a)))
+
+instance (MonadCont m) => MonadCont (ListT m) where
+    callCC f = ListT $
+        callCC $ \c ->
+        runListT (f (\a -> ListT $ c [a]))
+
+instance (MonadCont m) => MonadCont (ReaderT r m) where
+    callCC f = ReaderT $ \r ->
+        callCC $ \c ->
+        runReaderT (f (\a -> ReaderT $ \_ -> c a)) r
+
+instance (Monoid w, MonadCont m) => MonadCont (RWST r w s m) where
+    callCC f = RWST $ \r s ->
+        callCC $ \c ->
+        runRWST (f (\a -> RWST $ \_ s' -> c (a, s', mempty))) r s
+
+instance (Monoid w, MonadCont m) => MonadCont (Strict.RWST r w s m) where
+    callCC f = Strict.RWST $ \r s ->
+        callCC $ \c ->
+        Strict.runRWST (f (\a -> Strict.RWST $ \_ s' -> c (a, s', mempty))) r s
+
+instance (MonadCont m) => MonadCont (StateT s m) where
+    callCC f = StateT $ \s ->
+        callCC $ \c ->
+        runStateT (f (\a -> StateT $ \s' -> c (a, s'))) s
+
+instance (MonadCont m) => MonadCont (Strict.StateT s m) where
+    callCC f = Strict.StateT $ \s ->
+        callCC $ \c ->
+        Strict.runStateT (f (\a -> Strict.StateT $ \s' -> c (a, s'))) s
+
+instance (Monoid w, MonadCont m) => MonadCont (WriterT w m) where
+    callCC f = WriterT $
+        callCC $ \c ->
+        runWriterT (f (\a -> WriterT $ c (a, mempty)))
+
+instance (Monoid w, MonadCont m) => MonadCont (Strict.WriterT w m) where
+    callCC f = Strict.WriterT $
+        callCC $ \c ->
+        Strict.runWriterT (f (\a -> Strict.WriterT $ c (a, mempty)))
 
