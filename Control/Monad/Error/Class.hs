@@ -94,11 +94,9 @@ instance (Error e) => MonadError (Either e) where
 instance (Monad m, Error e) => MonadError (ErrorT e m) where
     type ErrorType (ErrorT e m) = e
     throwError l     = ErrorT $ return (Left l)
-    m `catchError` h = ErrorT $ do
-        a <- runErrorT m
-        case a of
-            Left  l -> runErrorT (h l)
-            Right r -> return (Right r)
+    m `catchError` h = ErrorT $ runErrorT m >>= \ case
+        Left  l -> runErrorT (h l)
+        Right r -> return (Right r)
 
 instance (MonadError m) => MonadError (ListT m) where
     type ErrorType (ListT m) = ErrorType m

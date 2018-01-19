@@ -64,14 +64,11 @@ instance (Error e, MonadWriter m) => MonadWriter (ErrorT e m) where
     tell     = lift . tell
     listen m = ErrorT $ do
         (a, w) <- listen (runErrorT m)
-        case a of
-            Left  l -> return $ Left  l
-            Right r -> return $ Right (r, w)
-    pass   m = ErrorT $ pass $ do
-        a <- runErrorT m
-        case a of
-            Left  l      -> return (Left  l, id)
-            Right (r, f) -> return (Right r, f)
+        pure $ case a of
+            Left  l -> Left  l
+            Right r -> Right (r, w)
+    pass   m = ErrorT $ pass $ (\ case Left  l      -> (Left  l, id)
+                                       Right (r, f) -> (Right r, f)) <$> runErrorT m
 
 instance (MonadWriter m) => MonadWriter (ReaderT r m) where
     type WritType (ReaderT r m) = WritType m

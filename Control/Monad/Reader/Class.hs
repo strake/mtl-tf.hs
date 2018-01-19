@@ -74,9 +74,7 @@ Retrieves a function of the current environment. Parameters:
 See an example in "Control.Monad.Reader".
 -}
 asks :: (MonadReader m) => (EnvType m -> a) -> m a
-asks f = do
-    r <- ask
-    return (f r)
+asks f = f <$> ask
 
 instance (Monad m) => MonadReader (ReaderT r m) where
     type EnvType (ReaderT r m) = r

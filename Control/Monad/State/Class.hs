@@ -53,17 +53,13 @@ class (Monad m) => MonadState m where
 --    with an @Int@ state.
 
 modify :: (MonadState m) => (StateType m -> StateType m) -> m ()
-modify f = do
-    s <- get
-    put (f s)
+modify f = get >>= put . f
 
 -- | Gets specific component of the state, using a projection function
 -- supplied.
 
 gets :: (MonadState m) => (StateType m -> a) -> m a
-gets f = do
-    s <- get
-    return (f s)
+gets f = f <$> get
 
 instance (MonadState m) => MonadState (ContT r m) where
     type StateType (ContT r m) = StateType m
