@@ -34,10 +34,7 @@ The Error monad (also called the Exception monad).
   inspired by the Haskell Monad Template Library from
     Andy Gill (<http://www.cse.ogi.edu/~andy/>)
 -}
-module Control.Monad.Error.Class (
-    Error (..),
-    MonadError(..),
-  ) where
+module Control.Monad.Error.Class (MonadError(..)) where
 
 import Control.Exception
 import Control.Monad.Trans.All
@@ -64,7 +61,7 @@ class (Monad m) => MonadError m where
     type ErrorType m
 
     -- | Is used within a monadic computation to begin exception processing.
-    throwError :: (Error (ErrorType m)) => ErrorType m -> m a
+    throwError :: ErrorType m -> m a
 
     {- |
     A handler function to handle previous errors and return to normal execution.
@@ -75,7 +72,7 @@ class (Monad m) => MonadError m where
     where the @action@ functions can call 'throwError'.
     Note that @handler@ and the do-block must have the same return type.
     -}
-    catchError :: (Error (ErrorType m)) => m a -> (ErrorType m -> m a) -> m a
+    catchError :: m a -> (ErrorType m -> m a) -> m a
 
 instance MonadError IO where
     type ErrorType IO = IOError
@@ -85,17 +82,17 @@ instance MonadError IO where
 -- ---------------------------------------------------------------------------
 -- Our parameterizable error monad
 
-instance (Error e) => MonadError (Either e) where
+instance MonadError (Either e) where
     type ErrorType (Either e) = e
     throwError             = Left
     Left  l `catchError` h = h l
     Right r `catchError` _ = Right r
 
-instance (Monad m, Error e) => MonadError (ErrorT e m) where
-    type ErrorType (ErrorT e m) = e
-    throwError l     = ErrorT $ return (Left l)
-    m `catchError` h = ErrorT $ runErrorT m >>= \ case
-        Left  l -> runErrorT (h l)
+instance (Monad m) => MonadError (ExceptT e m) where
+    type ErrorType (ExceptT e m) = e
+    throwError l     = ExceptT $ return (Left l)
+    m `catchError` h = ExceptT $ runExceptT m >>= \ case
+        Left  l -> runExceptT (h l)
         Right r -> return (Right r)
 
 instance (MonadError m) => MonadError (ListT m) where

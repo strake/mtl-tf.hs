@@ -82,10 +82,10 @@ class (Monad m) => MonadCont m where
 instance (Monad m) => MonadCont (ContT r m) where
     callCC f = ContT $ \c -> runContT (f (\a -> ContT $ \_ -> c a)) c
 
-instance (Error e, MonadCont m) => MonadCont (ErrorT e m) where
-    callCC f = ErrorT $
+instance (MonadCont m) => MonadCont (ExceptT e m) where
+    callCC f = ExceptT $
         callCC $ \c ->
-        runErrorT (f (\a -> ErrorT $ c (Right a)))
+        runExceptT (f (\a -> ExceptT $ c (Right a)))
 
 instance (MonadCont m) => MonadCont (ListT m) where
     callCC f = ListT $

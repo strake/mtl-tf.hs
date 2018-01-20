@@ -34,7 +34,7 @@ import Control.Monad.Writer.Class
 class (Monoid (WritType m), MonadReader m, MonadWriter m, MonadState m)
    => MonadRWS m
 
-instance (Error e, Monoid (WritType m), MonadRWS m) => MonadRWS (ErrorT e m)
+instance (Monoid (WritType m), MonadRWS m) => MonadRWS (ExceptT e m)
 
 instance (Monoid w, Monad m) => MonadRWS (RWST r w s m)
 

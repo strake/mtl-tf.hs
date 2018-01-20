@@ -36,15 +36,15 @@ The Error monad (also called the Exception monad).
 -}
 module Control.Monad.Error (
     module Control.Monad.Error.Class,
-    ErrorT(..),
-    mapErrorT,
+    ExceptT(..),
+    mapExceptT,
     module Control.Monad,
     module Control.Monad.Fix,
     module Control.Monad.Trans,
     -- * Example 1: Custom Error Data Type
     -- $customErrorExample
 
-    -- * Example 2: Using ErrorT Monad Transformer
+    -- * Example 2: Using ExceptT Monad Transformer
     -- $ErrorTExample
   ) where
 
@@ -52,7 +52,7 @@ import Control.Monad
 import Control.Monad.Error.Class
 import Control.Monad.Fix
 import Control.Monad.Trans
-import Control.Monad.Trans.Error
+import Control.Monad.Trans.Except
 
 {- $customErrorExample
 Here is an example that demonstrates the use of a custom 'Error' data type with
@@ -110,7 +110,7 @@ or a string longer than 5 characters. Otherwise it prints length of the string.
 -}
 
 {- $ErrorTExample
-@'ErrorT'@ monad transformer can be used to add error handling to another monad.
+@'ExceptT'@ monad transformer can be used to add error handling to another monad.
 Here is an example how to combine it with an @IO@ monad:
 
 >import Control.Monad.Error
@@ -118,11 +118,11 @@ Here is an example how to combine it with an @IO@ monad:
 >-- An IO monad which can return String failure.
 >-- It is convenient to define the monad type of the combined monad,
 >-- especially if we combine more monad transformers.
->type LengthMonad = ErrorT String IO
+>type LengthMonad = ExceptT String IO
 >
 >main = do
->  -- runErrorT removes the ErrorT wrapper
->  r <- runErrorT calculateLength
+>  -- runExceptT removes the ExceptT wrapper
+>  r <- runExceptT calculateLength
 >  reportResult r
 >
 >-- Asks user for a non-empty string and returns its length.

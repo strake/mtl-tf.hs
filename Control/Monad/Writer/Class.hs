@@ -59,16 +59,16 @@ censor f m = pass $ do
     a <- m
     return (a, f)
 
-instance (Error e, MonadWriter m) => MonadWriter (ErrorT e m) where
-    type WritType (ErrorT e m) = WritType m
+instance (MonadWriter m) => MonadWriter (ExceptT e m) where
+    type WritType (ExceptT e m) = WritType m
     tell     = lift . tell
-    listen m = ErrorT $ do
-        (a, w) <- listen (runErrorT m)
+    listen m = ExceptT $ do
+        (a, w) <- listen (runExceptT m)
         pure $ case a of
             Left  l -> Left  l
             Right r -> Right (r, w)
-    pass   m = ErrorT $ pass $ (\ case Left  l      -> (Left  l, id)
-                                       Right (r, f) -> (Right r, f)) <$> runErrorT m
+    pass   m = ExceptT $ pass $ (\ case Left  l      -> (Left  l, id)
+                                        Right (r, f) -> (Right r, f)) <$> runExceptT m
 
 instance (MonadWriter m) => MonadWriter (ReaderT r m) where
     type WritType (ReaderT r m) = WritType m

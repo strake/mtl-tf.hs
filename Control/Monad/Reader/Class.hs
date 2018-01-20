@@ -99,10 +99,10 @@ instance (MonadReader m) => MonadReader (ContT r m) where
         r <- ask
         local f (runContT m (local (const r) . c))
 
-instance (Error e, MonadReader m) => MonadReader (ErrorT e m) where
-    type EnvType (ErrorT e m) = EnvType m
+instance (MonadReader m) => MonadReader (ExceptT e m) where
+    type EnvType (ExceptT e m) = EnvType m
     ask       = lift ask
-    local f m = ErrorT $ local f (runErrorT m)
+    local f m = ExceptT $ local f (runExceptT m)
 
 instance (MonadReader m) => MonadReader (ListT m) where
     type EnvType (ListT m) = EnvType m

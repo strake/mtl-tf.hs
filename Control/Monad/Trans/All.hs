@@ -1,7 +1,7 @@
 module Control.Monad.Trans.All (module M) where
 
 import Control.Monad.Trans.Cont as M (ContT (..))
-import Control.Monad.Trans.Error as M (Error (..), ErrorT (..))
+import Control.Monad.Trans.Except as M (ExceptT (..), runExceptT)
 import Control.Monad.Trans.List as M (ListT (..))
 import Control.Monad.Trans.RWS as M (RWST (..))
 import Control.Monad.Trans.Reader as M (ReaderT (..))
