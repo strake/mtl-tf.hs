@@ -104,11 +104,6 @@ instance (MonadReader m) => MonadReader (ExceptT e m) where
     ask       = lift ask
     local f m = ExceptT $ local f (runExceptT m)
 
-instance (MonadReader m) => MonadReader (ListT m) where
-    type EnvType (ListT m) = EnvType m
-    ask       = lift ask
-    local f m = ListT $ local f (runListT m)
-
 instance (Monoid w, Monad m) => MonadReader (RWST r w s m) where
     type EnvType (RWST r w s m) = r
     ask       = RWST $ \r s -> return (r, s, mempty)

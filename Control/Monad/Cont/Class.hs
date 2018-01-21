@@ -87,11 +87,6 @@ instance (MonadCont m) => MonadCont (ExceptT e m) where
         callCC $ \c ->
         runExceptT (f (\a -> ExceptT $ c (Right a)))
 
-instance (MonadCont m) => MonadCont (ListT m) where
-    callCC f = ListT $
-        callCC $ \c ->
-        runListT (f (\a -> ListT $ c [a]))
-
 instance (MonadCont m) => MonadCont (ReaderT r m) where
     callCC f = ReaderT $ \r ->
         callCC $ \c ->

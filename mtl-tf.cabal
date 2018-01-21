@@ -23,7 +23,6 @@ library
                      , Control.Monad.Error
                      , Control.Monad.Error.Class
                      , Control.Monad.Identity
-                     , Control.Monad.List
                      , Control.Monad.Reader
                      , Control.Monad.Reader.Class
                      , Control.Monad.RWS

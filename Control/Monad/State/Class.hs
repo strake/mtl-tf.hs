@@ -71,11 +71,6 @@ instance (MonadState m) => MonadState (ExceptT e m) where
     get = lift get
     put = lift . put
 
-instance (MonadState m) => MonadState (ListT m) where
-    type StateType (ListT m) = StateType m
-    get = lift get
-    put = lift . put
-
 instance (MonadState m) => MonadState (ReaderT r m) where
     type StateType (ReaderT r m) = StateType m
     get = lift get

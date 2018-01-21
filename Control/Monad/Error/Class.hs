@@ -95,12 +95,6 @@ instance (Monad m) => MonadError (ExceptT e m) where
         Left  l -> runExceptT (h l)
         Right r -> return (Right r)
 
-instance (MonadError m) => MonadError (ListT m) where
-    type ErrorType (ListT m) = ErrorType m
-    throwError       = lift . throwError
-    m `catchError` h = ListT $ runListT m
-        `catchError` \e -> runListT (h e)
-
 instance (MonadError m) => MonadError (ReaderT r m) where
     type ErrorType (ReaderT r m) = ErrorType m
     throwError       = lift . throwError
