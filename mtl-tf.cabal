@@ -1,5 +1,5 @@
 name:                mtl-tf
-version:             0.1
+version:             0.2.0.0
 synopsis:            Monad Transformer Library with Type Families
 description:
     A port of the mtl to type families.
