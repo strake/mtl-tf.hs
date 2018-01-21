@@ -40,7 +40,7 @@ library
                      , Control.Monad.Writer.Strict
   other-modules:       Control.Monad.Trans.All
                      , Control.Monad.Trans.All.Strict
-  build-depends:       base, transformers
+  build-depends:       base >=4.7 && <5, transformers >=0.4 && <0.6
   -- hs-source-dirs:      
   default-language:    Haskell2010
   default-extensions:  LambdaCase
