@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.RWS.Class
