@@ -40,6 +40,8 @@ import Control.Exception
 import Control.Monad.Trans.All
 import qualified Control.Monad.Trans.All.Strict as Strict
 import Control.Monad.Trans.Class
+import Control.Monad.Trans.Identity (IdentityT (..))
+import Control.Monad.Trans.Maybe (MaybeT (..))
 
 {- |
 The strategy of combining computations that can throw exceptions
@@ -94,6 +96,16 @@ instance (Monad m) => MonadError (ExceptT e m) where
     m `catchError` h = ExceptT $ runExceptT m >>= \ case
         Left  l -> runExceptT (h l)
         Right r -> return (Right r)
+
+instance (MonadError m) => MonadError (IdentityT m) where
+    type ErrorType (IdentityT m) = ErrorType m
+    throwError = lift . throwError
+    catchError (IdentityT x) f = IdentityT $ catchError x (runIdentityT . f)
+
+instance (MonadError m) => MonadError (MaybeT m) where
+    type ErrorType (MaybeT m) = ErrorType m
+    throwError = lift . throwError
+    catchError (MaybeT x) f = MaybeT $ catchError x (runMaybeT . f)
 
 instance (MonadError m) => MonadError (ReaderT r m) where
     type ErrorType (ReaderT r m) = ErrorType m

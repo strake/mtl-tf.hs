@@ -26,9 +26,12 @@ module Control.Monad.State.Class (
     gets,
   ) where
 
+import Control.Monad (join)
 import Control.Monad.Trans.All
 import qualified Control.Monad.Trans.All.Strict as Strict
 import Control.Monad.Trans.Class
+import Control.Monad.Trans.Identity (IdentityT (..))
+import Control.Monad.Trans.Maybe (MaybeT (..))
 
 -- ---------------------------------------------------------------------------
 -- | /get/ returns the state from the internals of the monad.
@@ -38,7 +41,14 @@ import Control.Monad.Trans.Class
 class (Monad m) => MonadState m where
     type StateType m
     get :: m (StateType m)
+    get = state (join (,))
     put :: StateType m -> m ()
+    put = state . pure . (,) ()
+    state :: (StateType m -> (a, StateType m)) -> m a
+    state f = do
+        st <- get
+        let (a, st') = f st
+        a <$ put st'
 
 -- | Monadic state transformer.
 --
@@ -60,6 +70,16 @@ modify f = get >>= put . f
 
 gets :: (MonadState m) => (StateType m -> a) -> m a
 gets f = f <$> get
+
+instance (MonadState m) => MonadState (IdentityT m) where
+    type StateType (IdentityT m) = StateType m
+    get = lift get
+    put = lift . put
+
+instance (MonadState m) => MonadState (MaybeT m) where
+    type StateType (MaybeT m) = StateType m
+    get = lift get
+    put = lift . put
 
 instance (MonadState m) => MonadState (ContT r m) where
     type StateType (ContT r m) = StateType m

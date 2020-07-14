@@ -45,6 +45,8 @@ module Control.Monad.Reader.Class (
 import Control.Monad.Trans.All
 import qualified Control.Monad.Trans.All.Strict as Strict
 import Control.Monad.Trans.Class
+import Control.Monad.Trans.Identity (IdentityT (..))
+import Control.Monad.Trans.Maybe (MaybeT (..))
 
 {- |
 See examples in "Control.Monad.Reader".
@@ -91,6 +93,16 @@ instance MonadReader ((->) r) where
 
 -- ---------------------------------------------------------------------------
 -- Instances for other mtl transformers
+
+instance (MonadReader m) => MonadReader (IdentityT m) where
+    type EnvType (IdentityT m) = EnvType m
+    ask     = lift ask
+    local f = IdentityT . local f . runIdentityT
+
+instance (MonadReader m) => MonadReader (MaybeT m) where
+    type EnvType (MaybeT m) = EnvType m
+    ask     = lift ask
+    local f = MaybeT . local f . runMaybeT
 
 instance (MonadReader m) => MonadReader (ContT r m) where
     type EnvType (ContT r m) = EnvType m

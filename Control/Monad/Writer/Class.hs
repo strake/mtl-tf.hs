@@ -30,6 +30,8 @@ module Control.Monad.Writer.Class (
 import Control.Monad.Trans.All
 import qualified Control.Monad.Trans.All.Strict as Strict
 import Control.Monad.Trans.Class
+import Control.Monad.Trans.Identity (IdentityT (..))
+import Control.Monad.Trans.Maybe (MaybeT (..))
 
 -- ---------------------------------------------------------------------------
 -- MonadWriter class
@@ -59,16 +61,23 @@ censor f m = pass $ do
     a <- m
     return (a, f)
 
+instance (MonadWriter m) => MonadWriter (IdentityT m) where
+    type WritType (IdentityT m) = WritType m
+    tell = lift . tell
+    listen (IdentityT m) = IdentityT $ listen m
+    pass   (IdentityT m) = IdentityT $ pass m
+
+instance (MonadWriter m) => MonadWriter (MaybeT m) where
+    type WritType (MaybeT m) = WritType m
+    tell = lift . tell
+    listen (MaybeT m) = MaybeT $ flip fmap (listen m) $ \ (a, w) -> flip (,) w <$> a
+    pass   (MaybeT m) = MaybeT $ pass $ (\ case Nothing -> (Nothing, id); Just (r, f) -> (Just r, f)) <$> m
+
 instance (MonadWriter m) => MonadWriter (ExceptT e m) where
     type WritType (ExceptT e m) = WritType m
     tell     = lift . tell
-    listen m = ExceptT $ do
-        (a, w) <- listen (runExceptT m)
-        pure $ case a of
-            Left  l -> Left  l
-            Right r -> Right (r, w)
-    pass   m = ExceptT $ pass $ (\ case Left  l      -> (Left  l, id)
-                                        Right (r, f) -> (Right r, f)) <$> runExceptT m
+    listen (ExceptT m) = ExceptT $ flip fmap (listen m) $ \ (a, w) -> flip (,) w <$> a
+    pass   (ExceptT m) = ExceptT $ pass $ (\ case Left  l      -> (Left  l, id); Right (r, f) -> (Right r, f)) <$> m
 
 instance (MonadWriter m) => MonadWriter (ReaderT r m) where
     type WritType (ReaderT r m) = WritType m
