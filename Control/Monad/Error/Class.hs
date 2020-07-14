@@ -1,6 +1,3 @@
-{-# LANGUAGE UndecidableInstances #-}
--- Needed for the same reasons as in Reader, State etc
-
 {- |
 Module      :  Control.Monad.Error.Class
 Copyright   :  (c) Michael Weber <michael.weber@post.rwth-aachen.de> 2001,

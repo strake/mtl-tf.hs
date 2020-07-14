@@ -1,6 +1,3 @@
-{-# LANGUAGE UndecidableInstances #-}
--- Search for UndecidableInstances to see why this is needed
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.Writer.Class
@@ -105,7 +102,6 @@ instance (Monoid w, Monad m) => MonadWriter (Strict.RWST r w s m) where
         ((a, f), s', w) <- Strict.runRWST m r s
         return (a, s', f w)
 
--- Needs UndecidableInstances
 instance (MonadWriter m) => MonadWriter (StateT s m) where
     type WritType (StateT s m) = WritType m
     tell     = lift . tell
@@ -116,7 +112,6 @@ instance (MonadWriter m) => MonadWriter (StateT s m) where
         ~((a, f), s') <- runStateT m s
         return ((a, s'), f)
 
--- Needs UndecidableInstances
 instance (MonadWriter m) => MonadWriter (Strict.StateT s m) where
     type WritType (Strict.StateT s m) = WritType m
     tell     = lift . tell

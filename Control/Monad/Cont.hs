@@ -1,6 +1,3 @@
-{-# LANGUAGE UndecidableInstances #-}
--- Search for UndecidableInstances to see why this is needed
-
 {- |
 Module      :  Control.Monad.Cont
 Copyright   :  (c) The University of Glasgow 2001,

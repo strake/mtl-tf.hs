@@ -1,4 +1,3 @@
-{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.RWS.Strict
